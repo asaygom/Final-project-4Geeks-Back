@@ -10,9 +10,10 @@ class User(db.Model):
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(200), nullable=False)
-    trainer = db.Column(db.Integer, db.ForeignKey('trainer.id'))
+    trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'))
     is_active = db.Column(db.Boolean, nullable=False)
-    subscription_date = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
+    subscription_date = db.Column(db.Integer, nullable=False)
+    trainer = db.relationship("Trainer")
 
     def to_dict(self):
         return {
@@ -60,6 +61,8 @@ class Training_plan(db.Model):
     goal_description = db.Column(db.String(200))
     completed_percentage = db.Column(db.Float, nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
+    trainer = db.relationship("Trainer")
+    user = db.relationship("User")
 
     def to_dict(self):
         return {
@@ -82,10 +85,11 @@ class Routine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     exercise_id = db.Column(db.Integer, db.ForeignKey('exercise.id'))
-    weekday = db.Column(db.Enum, nullable=False)
+    weekday = db.Column(db.Enum("monday","tuesday","wednesday","thursday","friday","saturday","sunday",name="weekday"), nullable=False)
     completed_percentage = db.Column(db.Float, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
+    training_plan = db.relationship("Training_plan")
 
     def to_dict(self):
         return {
@@ -108,7 +112,9 @@ class Exercise(db.Model):
     weight = db.Column(db.Integer)
     is_completed = db.Column(db.Boolean, nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=True)
-    equipment_issue = db.Column(db.Enum)
+    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","mayor_issue",name="equipment_issue"))
+    routine = db.relationship("Routine")
+    equipment = db.relationship("Equipment")
 
     def to_dict(self):
         return {
@@ -128,7 +134,7 @@ class Equipment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(200), nullable=False)
-    status = db.Column(db.Enum, nullable=False)
+    status = db.Column(db.Enum("malfunction","not_working","working",name="status"), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
 
     def to_dict(self):
@@ -147,6 +153,7 @@ class Attendance(db.Model):
     check_in_time = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
     check_out_time = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship("User")
 
     def to_dict(self):
         return {

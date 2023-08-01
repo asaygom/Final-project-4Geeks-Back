@@ -5,7 +5,7 @@ from flask_cors import CORS
 from models.models import db, User, Trainer, Training_plan, Routine, Exercise, Equipment, Attendance
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://postgres:admin@localhost/postgres"
 db.init_app(app)
 migrate = Migrate(app,db)
 CORS(app)
