@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -22,7 +23,7 @@ class User(db.Model):
             "last_name": self.last_name,
             "email": self.email,
             "role": self.role,
-            "trainer": self.trainer,
+            "trainer_id": self.trainer_id,
             "is_active": self.is_active,
             "subscription_date": self.subscription_date
         }
@@ -54,8 +55,8 @@ class Training_plan(db.Model):
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'), nullable=True)
-    start_time = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
-    finish_time = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    finish_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     is_completed = db.Column(db.Boolean, nullable=False)
     goal_name = db.Column(db.String(200), nullable=False)
     goal_description = db.Column(db.String(200))
@@ -149,9 +150,9 @@ class Equipment(db.Model):
 class Attendance(db.Model):
     __tablename__='attendance'
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
-    check_in_time = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
-    check_out_time = db.Column(db.Integer, nullable=False) #debiera ser formato fecha pero me está dando error
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    check_in_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    check_out_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship("User")
 

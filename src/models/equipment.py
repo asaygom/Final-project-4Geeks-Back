@@ -5,7 +5,7 @@ class Equipment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(200), nullable=False)
-    status = db.Column(db.Enum, nullable=False)
+    status = db.Column(db.Enum("malfunction","not_working","working",name="status"), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
 
     def to_dict(self):

@@ -1,4 +1,5 @@
 from models import db
+from datetime import datetime
 #no se está usando este archivo
 class Training_plan(db.Model):
     __tablename__='training_plan'
@@ -7,13 +8,15 @@ class Training_plan(db.Model):
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'), nullable=True)
-    start_time = db.Column(db.Datetime, nullable=False)
-    finish_time = db.Column(db.Datetime, nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    finish_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     is_completed = db.Column(db.Boolean, nullable=False)
     goal_name = db.Column(db.String(200), nullable=False)
     goal_description = db.Column(db.String(200))
     completed_percentage = db.Column(db.Float, nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
+    trainer = db.relationship("Trainer")
+    user = db.relationship("User")
 
     def to_dict(self):
         return {

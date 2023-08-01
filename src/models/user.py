@@ -8,9 +8,10 @@ class User(db.Model):
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(200), nullable=False)
-    trainer = db.Column(db.Integer, db.ForeignKey('trainer.id'))
+    trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'))
     is_active = db.Column(db.Boolean, nullable=False)
-    subscription_date = db.Column(db.Datetime, nullable=False)
+    subscription_date = db.Column(db.Integer, nullable=False)
+    trainer = db.relationship("Trainer")
 
     def to_dict(self):
         return {
@@ -19,7 +20,7 @@ class User(db.Model):
             "last_name": self.last_name,
             "email": self.email,
             "role": self.role,
-            "trainer": self.trainer,
+            "trainer_id": self.trainer_id,
             "is_active": self.is_active,
             "subscription_date": self.subscription_date
         }

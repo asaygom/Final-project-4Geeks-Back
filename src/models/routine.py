@@ -5,10 +5,11 @@ class Routine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     exercise_id = db.Column(db.Integer, db.ForeignKey('exercise.id'))
-    weekday = db.Column(db.Enum, nullable=False)
+    weekday = db.Column(db.Enum("monday","tuesday","wednesday","thursday","friday","saturday","sunday",name="weekday"), nullable=False)
     completed_percentage = db.Column(db.Float, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
+    training_plan = db.relationship("Training_plan")
 
     def to_dict(self):
         return {

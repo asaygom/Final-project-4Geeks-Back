@@ -10,7 +10,9 @@ class Exercise(db.Model):
     weight = db.Column(db.Integer)
     is_completed = db.Column(db.Boolean, nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=True)
-    equipment_issue = db.Column(db.Enum)
+    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","mayor_issue",name="equipment_issue"))
+    routine = db.relationship("Routine")
+    equipment = db.relationship("Equipment")
 
     def to_dict(self):
         return {
