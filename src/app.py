@@ -17,7 +17,33 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 #empezamos a declarar nuestras rutas y metodos
+@app.route('/user', methods=['GET', "POST"])
+def handle_user():
+    if request.method == 'GET':
+        users = User.query.all()
+        users = list(map(lambda user: user.to_dict(), users))
 
+        return jsonify({
+            "data": users
+        }), 200
+    elif request.method == 'POST':
+        user = User()
+        data = request.get_json()
+        user.name = data["name"]
+        user.last_name = data["last_name"]
+        user.email = data["email"]
+        user.password = data["password"]
+        user.role = data["role"]
+        user.trainer_id = data["trainer_id"]
+        user.is_active = data["is_active"]
+        user.subscription_date = data["subscription_date"]
+
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify({
+            "msg": "user created"
+        }), 200
 
 
 #no modificar desde este punto hacia abajo
