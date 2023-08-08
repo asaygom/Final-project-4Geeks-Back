@@ -45,6 +45,30 @@ def handle_user():
             "msg": "user created"
         }), 200
 
+@app.route('/equipment', methods=['GET', "POST"])
+def handle_equipment():
+    if request.method == 'GET':
+        equipments = Equipment.query.all()
+        equipments = list(map(lambda equipment: equipment.to_dict(), equipments))
+
+        return jsonify({
+            "data": equipments
+        }), 200
+    elif request.method == 'POST':
+        equipment = Equipment()
+        data = request.get_json()
+        equipment.name = data["name"]
+        equipment.description = data["description"]
+        equipment.status = data["status"]
+        equipment.is_active = data["is_active"]
+
+        db.session.add(equipment)
+        db.session.commit()
+
+        return jsonify({
+            "msg": "equipment added"
+        }), 200
+
 
 #no modificar desde este punto hacia abajo
 
