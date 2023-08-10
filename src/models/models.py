@@ -11,10 +11,9 @@ class User(db.Model):
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(200), nullable=False)
-    trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'))
+    trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'), nullable=True)
     is_active = db.Column(db.Boolean, nullable=False)
-    subscription_date = db.Column(db.Integer, nullable=False)
-    trainer = db.relationship("Trainer")
+    subscription_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
         return {
@@ -37,6 +36,7 @@ class Trainer(db.Model):
     password = db.Column(db.String(200), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
     attendance = db.Column(db.Boolean, nullable=False)
+    users = db.relationship("User", backref="trainer", lazy=True)
 
     def to_dict(self):
         return {

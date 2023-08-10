@@ -7,7 +7,7 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://postgres:admin@localhost/postgres"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://postgres:admin@localhost/postgres_gym"
 app.config["JWT_SECRET_KEY"] = "super-secret" #debemos cambiar esto al archivo .env y pensar un key
 app.config['SECRET_KEY'] = "pass-key" #debemos cambiar esto al archivo .env y pensar un key
 db.init_app(app)
@@ -15,6 +15,9 @@ migrate = Migrate(app,db)
 CORS(app)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
+
+
+
 
 #empezamos a declarar nuestras rutas y metodos
 @app.route('/user', methods=['GET', "POST"])
