@@ -10,7 +10,7 @@ class User(db.Model):
     last_name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.Enum("member","admin",name="roles"), nullable=False)
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'), nullable=True)
     is_active = db.Column(db.Boolean, nullable=False)
     subscription_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
