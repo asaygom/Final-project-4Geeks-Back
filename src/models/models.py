@@ -11,9 +11,9 @@ class User(db.Model):
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(200), nullable=False)
-    trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'))
+    trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'), nullable=True)
     is_active = db.Column(db.Boolean, nullable=False)
-    subscription_date = db.Column(db.Integer, nullable=False)
+    subscription_date = db.Column(db.DateTime,default=datetime.utcnow, nullable=False)
     trainer = db.relationship("Trainer")
 
     def to_dict(self):
@@ -55,8 +55,8 @@ class Training_plan(db.Model):
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'), nullable=True)
-    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    finish_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    start_time = db.Column(db.DateTime,default=datetime.utcnow, nullable=False)
+    finish_time = db.Column(db.DateTime,default=datetime.utcnow, nullable=False)
     is_completed = db.Column(db.Boolean, nullable=False)
     goal_name = db.Column(db.String(200), nullable=False)
     goal_description = db.Column(db.String(200))

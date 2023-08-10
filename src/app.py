@@ -7,7 +7,7 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://postgres:admin@localhost/postgres"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://postgres:admin@localhost/database2"
 app.config["JWT_SECRET_KEY"] = "super-secret" #debemos cambiar esto al archivo .env y pensar un key
 app.config['SECRET_KEY'] = "pass-key" #debemos cambiar esto al archivo .env y pensar un key
 db.init_app(app)
@@ -34,9 +34,8 @@ def handle_user():
         user.email = data["email"]
         user.password = data["password"]
         user.role = data["role"]
-        user.trainer_id = data["trainer_id"]
         user.is_active = data["is_active"]
-        user.subscription_date = data["subscription_date"]
+        
 
         db.session.add(user)
         db.session.commit()
