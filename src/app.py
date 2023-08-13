@@ -71,9 +71,14 @@ def handle_equipment():
             "msg": "equipment added"
         }), 200
 
-@app.route('/equipment/<int:position>', methods=['PUT', "DELETE"])
+@app.route('/equipment/<int:id>', methods=['GET','PUT', 'DELETE'])
 def update_equipment(id):
-    if request.method == 'DELETE':
+    if request.method == 'GET':
+        equipment = Equipment.query.get(id)
+        data = equipment.to_dict()
+
+        return data, 200
+    elif request.method == 'DELETE':
         equipment = Equipment.query.get(id)
         if equipment is not None:
             db.session.delete(equipment)
