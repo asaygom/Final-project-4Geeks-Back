@@ -50,8 +50,9 @@ def handle_user():
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.role = data["role"]
+        user.trainer_id = data["trainer_id"]
         user.is_active = data["is_active"]
-        
+        user.subscription_date = data["subscription_date"]
 
         db.session.add(user)
         db.session.commit()
