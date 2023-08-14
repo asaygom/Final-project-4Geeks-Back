@@ -72,6 +72,45 @@ def handle_equipment():
             "msg": "equipment added"
         }), 200
 
+@app.route('/equipment/<int:id>', methods=['GET','PUT', 'DELETE'])
+def update_equipment(id):
+    if request.method == 'GET':
+        equipment = Equipment.query.get(id)
+        data = equipment.to_dict()
+
+        return data, 200
+    elif request.method == 'DELETE':
+        equipment = Equipment.query.get(id)
+        if equipment is not None:
+            db.session.delete(equipment)
+            db.session.commit()
+
+            return jsonify({
+                "msg": "equipment deleted"
+            }), 202
+        else:
+            return jsonify({
+                "msg": "equipment not found"
+            }), 404
+    elif request.method == 'PUT':
+        equipment = Equipment.query.get(id)
+        if equipment is not None:
+            data = request.get_json()
+            equipment.name = data["name"]
+            equipment.description = data["description"]
+            equipment.status = data["status"]
+            equipment.is_active = data["is_active"]
+
+            db.session.commit()
+
+            return jsonify({
+                "msg": "equipment updated"
+            }), 200
+        else:
+            return jsonify({
+                "msg": "equipment not found"
+            }), 404
+
 
 #no modificar desde este punto hacia abajo
 
