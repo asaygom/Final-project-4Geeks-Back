@@ -1,3 +1,4 @@
+import re
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -16,9 +17,6 @@ CORS(app)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
-
-
-
 #empezamos a declarar nuestras rutas y metodos
 @app.route('/user', methods=['GET', "POST"])
 def handle_user():
@@ -30,12 +28,27 @@ def handle_user():
             "data": users
         }), 200
     elif request.method == 'POST':
+        #Regular expression that checks a valid email
+        ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+        #Regular expression that checks a valid password
+        preg = '^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$'
+        # Instancing the a new user
         user = User()
         data = request.get_json()
+         #Checking email 
+        if (re.search(ereg,data["email"])):
+            user.email = data["email"]
+        else:
+            return "Invalid email format", 400
+        #Checking password
+        if (re.search(preg,data["password"])):
+            password_hash = bcrypt.generate_password_hash(data["password"])
+            user.password = password_hash
+        else:
+            return "Invalid password format", 400
+        #Ask for everything else
         user.name = data["name"]
         user.last_name = data["last_name"]
-        user.email = data["email"]
-        user.password = data["password"]
         user.role = data["role"]
         user.is_active = data["is_active"]
         
@@ -46,6 +59,35 @@ def handle_user():
         return jsonify({
             "msg": "user created"
         }), 200
+
+@app.route("/login", methods=["POST"])
+def login():
+    if not request.is_json:
+        return jsonify({"msg": "Missing JSON in request"}), 400
+    data = request.get_json()
+    email = data["email"]
+    password = data["password"]
+    if not email:
+        return jsonify({"msg": "Missing email parameter"}), 400
+    if not password:
+        return jsonify({"msg": "Missing password parameter"}), 400
+    user = User.query.filter_by(email=email).first()
+    if email is not None:
+        current_password = user.password
+        is_valid = bcrypt.check_password_hash(current_password, password)
+        if is_valid:
+            access_token = create_access_token(email)
+            return jsonify({
+                "access_token": access_token
+            }), 200
+        else:
+            return jsonify({
+                "msg": "invalid credentials"
+            }), 400
+    else:
+        return jsonify({
+            "msg": "invalid credentials"
+        }), 400
 
 @app.route('/equipment', methods=['GET', "POST"])
 def handle_equipment():
