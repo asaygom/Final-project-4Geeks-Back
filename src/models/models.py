@@ -18,8 +18,6 @@ class User(db.Model):
     attendances = db.relationship("Attendance", backref="user")
     training_plans = db.relationship("Training_plan", backref="user")
 
-    subscription_date = db.Column(db.DateTime,default=datetime.utcnow, nullable=False)
-
     def to_dict(self):
         return {
             "id": self.id,
