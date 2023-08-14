@@ -110,6 +110,29 @@ def update_equipment(id):
             return jsonify({
                 "msg": "equipment not found"
             }), 404
+        
+@app.route('/register', methods=["POST"])
+def register():
+    user = User()
+    data = request.get_json()
+    user.name = data["name"]
+    user.last_name = data["last_name"]
+    user.email = data["email"]
+    password = data["password"]
+    password_hash = bcrypt.generate_password_hash(password)
+    user.password = password_hash
+    user.role = data["role"]
+    user.is_active = data["is_active"]
+    user.subscription_date = data["subscription_date"]
+    user.photo_link = data["photo_link"]
+
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({
+       "msg": "user created"
+        }), 200
+
 
 
 #no modificar desde este punto hacia abajo
