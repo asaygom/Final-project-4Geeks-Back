@@ -32,12 +32,23 @@ def handle_user():
     elif request.method == 'POST':
         user = User()
         data = request.get_json()
+         #Checking email 
+        if (re.search(ereg,data["email"])):
+            user.email = data["email"]
+        else:
+            return "Invalid email format", 400
+        #Checking password
+        if (re.search(preg,data["password"])):
+            password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+            user.password = password_hash
+        else:
+            return "Invalid password format", 400
+        #Ask for everything else
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.email = data["email"]
         user.password = data["password"]
         user.role = data["role"]
-        user.trainer_id = data["trainer_id"]
         user.is_active = data["is_active"]
         user.subscription_date = data["subscription_date"]
         user.photo_link = data["photo_link"]
