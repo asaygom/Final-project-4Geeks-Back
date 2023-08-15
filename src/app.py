@@ -42,7 +42,7 @@ def handle_user():
             return "Invalid email format", 400
         #Checking password
         if (re.search(preg,data["password"])):
-            password_hash = bcrypt.generate_password_hash(data["password"])
+            password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
             user.password = password_hash
         else:
             return "Invalid password format", 400
@@ -50,7 +50,6 @@ def handle_user():
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.role = data["role"]
-        user.trainer_id = data["trainer_id"]
         user.is_active = data["is_active"]
         user.subscription_date = data["subscription_date"]
 
