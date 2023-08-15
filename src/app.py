@@ -175,6 +175,28 @@ def register():
        "msg": "user created"
         }), 200
 
+@app.route('/entrar', methods = ["POST"])
+def entrar():
+    data = request.get_json()
+    email = data["email"]
+    password = data["password"]
+    user = User.query.filter_by(email = email).first()
+    if user is not None:
+        current_password = user.password
+        is_valid = bcrypt.check_password_hash(current_password, password)
+        if is_valid:
+            access_token = create_access_token(email)
+            return jsonify({
+                "access_token": access_token
+            }), 200
+        else:
+            return jsonify({
+            "msg": "invalid credentials"
+        }), 400
+    else:    
+        return jsonify({
+            "msg": "invalid credentials"
+        }), 400
 
 
 #no modificar desde este punto hacia abajo
