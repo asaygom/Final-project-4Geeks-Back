@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models.models import db, User, Trainer, Training_plan, Routine, Exercise, Equipment, Attendance
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, verify_jwt_in_request
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
@@ -59,6 +59,17 @@ def handle_user():
         return jsonify({
             "msg": "user created"
         }), 200
+    
+@app.route('/userinfo', methods=['GET','PUT', 'DELETE'])
+@jwt_required()
+def update_user():
+    email = get_jwt_identity()
+    
+    if request.method == 'GET':
+        user = User.query.filter_by(email=email).first()
+        data = user.to_dict()
+
+        return data, 200
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -76,7 +87,7 @@ def login():
         current_password = user.password
         is_valid = bcrypt.check_password_hash(current_password, password)
         if is_valid:
-            access_token = create_access_token(email)
+            access_token = create_access_token(identity=email)
             return jsonify({
                 "access_token": access_token
             }), 200
@@ -105,6 +116,7 @@ def handle_equipment():
         equipment.description = data["description"]
         equipment.status = data["status"]
         equipment.is_active = data["is_active"]
+        equipment.photo_link = data["photo_link"]
 
         db.session.add(equipment)
         db.session.commit()
@@ -141,6 +153,8 @@ def update_equipment(id):
             equipment.description = data["description"]
             equipment.status = data["status"]
             equipment.is_active = data["is_active"]
+            equipment.photo_link = data["photo_link"]
+
 
             db.session.commit()
 
