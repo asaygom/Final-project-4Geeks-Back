@@ -89,7 +89,8 @@ def login():
         if is_valid:
             access_token = create_access_token(identity=email)
             return jsonify({
-                "access_token": access_token
+                "access_token": access_token,
+                "user":user.to_dict()
             }), 200
         else:
             return jsonify({
