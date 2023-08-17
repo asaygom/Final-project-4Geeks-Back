@@ -117,6 +117,9 @@ class Exercise(db.Model):
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=True)
     equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","mayor_issue",name="equipment_issue"))
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'))
+    photo_link = db.Column(db.String(300), nullable=True)
+    
+
 
     def to_dict(self):
         return {
@@ -129,7 +132,9 @@ class Exercise(db.Model):
             "is_completed": self.is_completed,
             "equipment_id": self.equipment_id,
             "equipment_issue": self.equipment_issue,
-            "routine_id": self.routine_id
+            "routine_id": self.routine_id,
+            "photo_link": self.photo_link
+
         }
 
 class Equipment(db.Model):

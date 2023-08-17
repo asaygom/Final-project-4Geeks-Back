@@ -1,3 +1,4 @@
+import re
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -151,6 +152,8 @@ def handle_exercise():
         exercise.equipment_id = data["equipment_id"]
         exercise.equipment_issue = data["equipment_issue"]
         exercise.routine_id = data["routine_id"]
+        exercise.photo_link = data["photo_link"]
+
 
         db.session.add(exercise)
         db.session.commit()
@@ -193,6 +196,8 @@ def update_exercise(id):
             exercise.equipment_id = data["equipment_id"]
             exercise.equipment_issue = data["equipment_issue"]
             exercise.routine_id = data["routine_id"]
+            exercise.photo_link = data["photo_link"]
+
 
             db.session.commit()
 
