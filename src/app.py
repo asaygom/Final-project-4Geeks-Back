@@ -101,6 +101,36 @@ def login():
             "msg": "invalid credentials"
         }), 400
 
+@app.route("/trainer_login", methods=["POST"])
+def trainer_login():
+    if not request.is_json:
+        return jsonify({"msg": "Missing JSON in request"}), 400
+    data = request.get_json()
+    email = data["email"]
+    password = data["password"]
+    if not email:
+        return jsonify({"msg": "Missing email parameter"}), 400
+    if not password:
+        return jsonify({"msg": "Missing password parameter"}), 400
+    trainer = Trainer.query.filter_by(email=email).first()
+    if email is not None:
+        current_password = trainer.password
+        is_valid = bcrypt.check_password_hash(current_password, password)
+        if is_valid:
+            access_token = create_access_token(identity=email)
+            return jsonify({
+                "access_token": access_token,
+                "user":trainer.to_dict()
+            }), 200
+        else:
+            return jsonify({
+                "msg": "invalid credentials"
+            }), 400
+    else:
+        return jsonify({
+            "msg": "invalid credentials"
+        }), 400
+
 @app.route('/equipment', methods=['GET', "POST"])
 def handle_equipment():
     if request.method == 'GET':
@@ -167,28 +197,47 @@ def update_equipment(id):
                 "msg": "equipment not found"
             }), 404
         
-@app.route('/register', methods=["POST"])
-def register():
-    user = User()
-    data = request.get_json()
-    user.name = data["name"]
-    user.last_name = data["last_name"]
-    user.email = data["email"]
-    password = data["password"]
-    password_hash = bcrypt.generate_password_hash(password)
-    user.password = password_hash
-    user.role = data["role"]
-    user.is_active = data["is_active"]
-    user.subscription_date = data["subscription_date"]
-    user.photo_link = data["photo_link"]
+@app.route('/trainer', methods=['GET', "POST"])
+def handle_trainer():
+    if request.method == 'GET':
+        trainers = Trainer.query.all()
+        trainers = list(map(lambda trainer: trainer.to_dict(), trainers))
 
-    db.session.add(user)
-    db.session.commit()
-
-    return jsonify({
-       "msg": "user created"
+        return jsonify({
+            "data": trainers
         }), 200
+    elif request.method == 'POST':
+        #Regular expression that checks a valid email
+        ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+        #Regular expression that checks a valid password
+        preg = '^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$'
+        # Instancing the a new user
+        trainer = Trainer()
+        data = request.get_json()
+         #Checking email 
+        if (re.search(ereg,data["email"])):
+            trainer.email = data["email"]
+        else:
+            return "Invalid email format", 400
+        #Checking password
+        if (re.search(preg,data["password"])):
+            password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+            trainer.password = password_hash
+        else:
+            return "Invalid password format", 400
+        #Ask for everything else
+        trainer.name = data["name"]
+        trainer.last_name = data["last_name"]
+        # trainer.role = data["role"]
+        trainer.is_active = data["is_active"]
+        trainer.attendance = data["attendance"]
 
+        db.session.add(trainer)
+        db.session.commit()
+
+        return jsonify({
+            "msg": "trainer created"
+        }), 200
     
 @app.route('/routines', methods = ["POST","GET", "DELETE", "PUT"])
 def routine():
