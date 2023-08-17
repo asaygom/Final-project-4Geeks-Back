@@ -188,29 +188,51 @@ def register():
        "msg": "user created"
         }), 200
 
-@app.route('/entrar', methods = ["POST"])
-def entrar():
-    data = request.get_json()
-    email = data["email"]
-    password = data["password"]
-    user = User.query.filter_by(email = email).first()
-    if user is not None:
-        current_password = user.password
-        is_valid = bcrypt.check_password_hash(current_password, password)
-        if is_valid:
-            access_token = create_access_token(email)
-            return jsonify({
-                "access_token": access_token
-            }), 200
-        else:
-            return jsonify({
-            "msg": "invalid credentials"
-        }), 400
-    else:    
-        return jsonify({
-            "msg": "invalid credentials"
-        }), 400
+    
+@app.route('/routines', methods = ["POST","GET", "DELETE", "PUT"])
+def routine():
+    if request.method == "GET":
+        routine = Routine.query.all()
+        data = routine.to_dict()
+        return data, 200
+    
+    if request.method == "POST":
+        routine = Routine()
+        data = request.get_json()
+        print(data)
+        routine.name = data["name"]
+        routine.weekday = data["weekday"]
+        routine.is_completed = data["is_completed"]
+        routine.completed_percentage = data["completed_percentage"]
+        routine.is_active = data["is_active"]
+        routine.training_plan_id = data["training_plan_id"]
+        db.session.add(routine)
+        db.session.commit()
 
+        return jsonify ({
+            "msg": "new routine created"
+        }), 200
+    else:
+        return jsonify ({
+            "msg": "not valid"
+        }), 400
+    
+@app.route('/exercise', methods=["POST", "GET"])
+def exercise():
+    if request.method == 'GET':
+        exercise = Exercise.query.all()
+        exercise = list(map(lambda exercise: exercise.to_dict(), exercise))
+
+        return jsonify({
+            "data": exercise
+        }), 200
+    
+@app.route('/trainigplan', methods=["GET"])
+def trainingplan():
+    plan = Training_plan.query.all()
+    data = list(map(lambda plan: plan.to_dict(), plan))
+    return data, 200
+    
 
 #no modificar desde este punto hacia abajo
 
