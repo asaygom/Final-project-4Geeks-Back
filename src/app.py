@@ -17,6 +17,9 @@ CORS(app)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
+
+
+
 #empezamos a declarar nuestras rutas y metodos
 @app.route('/user', methods=['GET', "POST"])
 def handle_user():
@@ -28,11 +31,6 @@ def handle_user():
             "data": users
         }), 200
     elif request.method == 'POST':
-        #Regular expression that checks a valid email
-        ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
-        #Regular expression that checks a valid password
-        preg = '^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$'
-        # Instancing the a new user
         user = User()
         data = request.get_json()
          #Checking email 
@@ -49,9 +47,13 @@ def handle_user():
         #Ask for everything else
         user.name = data["name"]
         user.last_name = data["last_name"]
+        user.email = data["email"]
+        user.password = data["password"]
         user.role = data["role"]
         user.is_active = data["is_active"]
         user.subscription_date = data["subscription_date"]
+        user.photo_link = data["photo_link"]
+
 
         db.session.add(user)
         db.session.commit()
@@ -71,6 +73,8 @@ def update_user():
 
         return data, 200
 
+
+#equipamiento
 @app.route("/login", methods=["POST"])
 def login():
     if not request.is_json:
@@ -267,22 +271,256 @@ def routine():
             "msg": "not valid"
         }), 400
     
-@app.route('/exercise', methods=["POST", "GET"])
-def exercise():
+# @app.route('/exercise', methods=["POST", "GET"])
+# def exercise():
+#     if request.method == 'GET':
+#         exercise = Exercise.query.all()
+#         exercise = list(map(lambda exercise: exercise.to_dict(), exercise))
+
+#         return jsonify({
+#             "data": exercise
+#         }), 200
+    
+# @app.route('/trainigplan', methods=["GET"])
+# def trainingplan():
+#     plan = Training_plan.query.all()
+#     data = list(map(lambda plan: plan.to_dict(), plan))
+#     return data, 200
+    
+
+#ejercicios
+
+@app.route('/exercise', methods=['GET', "POST"])
+def handle_exercise():
     if request.method == 'GET':
-        exercise = Exercise.query.all()
-        exercise = list(map(lambda exercise: exercise.to_dict(), exercise))
+        exercises = Exercise.query.all()
+        exercises = list(map(lambda exercise: exercise.to_dict(), exercises))
 
         return jsonify({
-            "data": exercise
+            "data": exercises
         }), 200
-    
-@app.route('/trainigplan', methods=["GET"])
-def trainingplan():
-    plan = Training_plan.query.all()
-    data = list(map(lambda plan: plan.to_dict(), plan))
-    return data, 200
-    
+    elif request.method == 'POST':
+        exercise = Exercise()
+        data = request.get_json()
+        exercise.name = data["name"]
+        exercise.description = data["description"]
+        exercise.sets = data["sets"]
+        exercise.repetitions = data["repetitions"]
+        exercise.weight = data["weight"]
+        exercise.is_completed = data["is_completed"]
+        exercise.equipment_id = data["equipment_id"]
+        exercise.equipment_issue = data["equipment_issue"]
+        exercise.routine_id = data["routine_id"]
+        exercise.photo_link = data["photo_link"]
+
+
+        db.session.add(exercise)
+        db.session.commit()
+
+        return jsonify({
+            "msg": "exercise added"
+        }), 200
+
+
+@app.route('/exercise/<int:id>', methods=['GET','PUT', 'DELETE'])
+def update_exercise(id):
+    if request.method == 'GET':
+        exercise = Exercise.query.get(id)
+        data = exercise.to_dict()
+
+        return data, 200
+    elif request.method == 'DELETE':
+        exercise = Exercise.query.get(id)
+        if exercise is not None:
+            db.session.delete(exercise)
+            db.session.commit()
+
+            return jsonify({
+                "msg": "exercise deleted"
+            }), 202
+        else:
+            return jsonify({
+                "msg": "exercise not found"
+            }), 404
+    elif request.method == 'PUT':
+        exercise = Exercise.query.get(id)
+        if exercise is not None:
+            data = request.get_json()
+            exercise.name = data["name"]
+            exercise.description = data["description"]
+            exercise.sets = data["sets"]
+            exercise.repetitions = data["repetitions"]
+            exercise.weight = data["weight"]
+            exercise.is_completed = data["is_completed"]
+            exercise.equipment_id = data["equipment_id"]
+            exercise.equipment_issue = data["equipment_issue"]
+            exercise.routine_id = data["routine_id"]
+            exercise.photo_link = data["photo_link"]
+
+
+            db.session.commit()
+
+            return jsonify({
+                "msg": "exercise updated"
+            }), 200
+        else:
+            return jsonify({
+                "msg": "exercise not found"
+            }), 404
+
+
+
+
+#rutina
+
+@app.route('/routine', methods=['GET', "POST"])
+def handle_routine():
+    if request.method == 'GET':
+        routines = Routine.query.all()
+        routines = list(map(lambda routine: routine.to_dict(), routines))
+
+        return jsonify({
+            "data": routines
+        }), 200
+    elif request.method == 'POST':
+        routine = Routine()
+        data = request.get_json()
+        routine.name = data["name"]
+        routine.weekday = data["weekday"]
+        routine.completed_percentage = data["completed_percentage"]
+        routine.is_completed = data["is_completed"]
+        routine.is_active = data["is_active"]
+        routine.training_plan_id = data["training_plan_id"]
+
+        db.session.add(routine)
+        db.session.commit()
+
+        return jsonify({
+            "msg": "routine added"
+        }), 200
+
+@app.route('/routine/<int:id>', methods=['GET','PUT', 'DELETE'])
+def update_routine(id):
+    if request.method == 'GET':
+        routine = Routine.query.get(id)
+        data = routine.to_dict()
+
+        return data, 200
+    elif request.method == 'DELETE':
+        routine = Routine.query.get(id)
+        if routine is not None:
+            db.session.delete(routine)
+            db.session.commit()
+
+            return jsonify({
+                "msg": "routine deleted"
+            }), 202
+        else:
+            return jsonify({
+                "msg": "routine not found"
+            }), 404
+    elif request.method == 'PUT':
+        routine = Routine.query.get(id)
+        if routine is not None:
+            data = request.get_json()
+            routine.name = data["name"]
+            routine.weekday = data["weekday"]
+            routine.completed_percentage = data["completed_percentage"]
+            routine.is_completed = data["is_completed"]
+            routine.is_active = data["is_active"]
+            routine.training_plan_id = data["training_plan_id"]
+
+            db.session.commit()
+
+            return jsonify({
+                "msg": "routine updated"
+            }), 200
+        else:
+            return jsonify({
+                "msg": "routine not found"
+            }), 404
+        
+
+#plan de entrenamiento
+
+@app.route('/training_plan', methods=['GET', "POST"])
+def handle_training_plan():
+    if request.method == 'GET':
+        training_plans = Training_plan.query.all()
+        training_plans = list(map(lambda training_plan: training_plan.to_dict(), training_plans))
+
+        return jsonify({
+            "data": training_plans
+        }), 200
+    elif request.method == 'POST':
+        training_plan = Training_plan()
+        data = request.get_json()
+        training_plan.name = data["name"]
+        training_plan.user_id = data["user_id"]
+        training_plan.trainer_id = data["trainer_id"]
+        training_plan.start_time = data["start_time"]
+        training_plan.finish_time = data["finish_time"]
+        training_plan.is_completed = data["is_completed"]
+        training_plan.goal_name = data["goal_name"]
+        training_plan.goal_description = data["goal_description"]
+        training_plan.completed_percentage = data["completed_percentage"]
+        training_plan.is_active = data["is_active"]
+
+        db.session.add(training_plan)
+        db.session.commit()
+
+        return jsonify({
+            "msg": "training_plan added"
+        }), 200
+
+@app.route('/training_plan/<int:id>', methods=['GET','PUT', 'DELETE'])
+def update_training_plan(id):
+    if request.method == 'GET':
+        training_plan = Training_plan.query.get(id)
+        data = training_plan.to_dict()
+
+        return data, 200
+    elif request.method == 'DELETE':
+        training_plan = Training_plan.query.get(id)
+        if training_plan is not None:
+            db.session.delete(training_plan)
+            db.session.commit()
+
+            return jsonify({
+                "msg": "training_plan deleted"
+            }), 202
+        else:
+            return jsonify({
+                "msg": "training_plan not found"
+            }), 404
+    elif request.method == 'PUT':
+        training_plan = Training_plan.query.get(id)
+        if training_plan is not None:
+            data = request.get_json()
+            training_plan.name = data["name"]
+            training_plan.user_id = data["user_id"]
+            training_plan.trainer_id = data["trainer_id"]
+            training_plan.start_time = data["start_time"]
+            training_plan.finish_time = data["finish_time"]
+            training_plan.is_completed = data["is_completed"]
+            training_plan.goal_name = data["goal_name"]
+            training_plan.goal_description = data["goal_description"]
+            training_plan.completed_percentage = data["completed_percentage"]
+            training_plan.is_active = data["is_active"]
+
+            db.session.commit()
+
+            return jsonify({
+                "msg": "training_plan updated"
+            }), 200
+        else:
+            return jsonify({
+                "msg": "training_plan not found"
+            }), 404
+
+
+
+
 
 #no modificar desde este punto hacia abajo
 
