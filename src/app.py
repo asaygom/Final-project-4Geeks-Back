@@ -77,8 +77,6 @@ def update_user():
 
         return data, 200
 
-
-#equipamiento
 @app.route("/login", methods=["POST"])
 def login():
     if not request.is_json:
