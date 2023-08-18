@@ -17,7 +17,11 @@ CORS(app)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
-
+# para cambiar el alcance de las expresiones regulares
+# #Regular expression that checks a valid email
+ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+#Regular expression that checks a valid password
+preg = '^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$'
 
 
 #empezamos a declarar nuestras rutas y metodos
@@ -211,10 +215,6 @@ def handle_trainer():
             "data": trainers
         }), 200
     elif request.method == 'POST':
-        #Regular expression that checks a valid email
-        ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
-        #Regular expression that checks a valid password
-        preg = '^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$'
         # Instancing the a new user
         trainer = Trainer()
         data = request.get_json()
@@ -308,11 +308,16 @@ def handle_exercise():
         exercise.repetitions = data["repetitions"]
         exercise.weight = data["weight"]
         exercise.is_completed = data["is_completed"]
-        exercise.equipment_id = data["equipment_id"]
+        exercise.equipment_id = data.get("equipment_id")  # Usar get para evitar errores si la clave no existe
         exercise.equipment_issue = data["equipment_issue"]
-        exercise.routine_id = data["routine_id"]
+        exercise.routine_id = data.get("routine_id")  # Usar get para evitar errores si la clave no existe
         exercise.photo_link = data["photo_link"]
 
+        # Ahora que ya hemos definido equipment_id y routine_id, podemos usarlos en las condiciones
+        if not exercise.equipment_id:
+            exercise.equipment_id = None
+        if not exercise.routine_id:
+            exercise.routine_id = None
 
         db.session.add(exercise)
         db.session.commit()
@@ -320,6 +325,7 @@ def handle_exercise():
         return jsonify({
             "msg": "exercise added"
         }), 200
+
 
 
 @app.route('/exercise/<int:id>', methods=['GET','PUT', 'DELETE'])
