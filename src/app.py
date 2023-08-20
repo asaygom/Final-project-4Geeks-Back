@@ -18,11 +18,10 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 # para cambiar el alcance de las expresiones regulares
-# #Regular expression that checks a valid email
+#Regular expression that checks a valid email
 ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
 #Regular expression that checks a valid password
 preg = '^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$'
-
 
 #empezamos a declarar nuestras rutas y metodos
 @app.route('/user', methods=['GET', "POST"])
@@ -52,7 +51,6 @@ def handle_user():
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.role = data["role"]
-        user.is_active = data["is_active"]
 
         db.session.add(user)
         db.session.commit()
@@ -226,7 +224,6 @@ def handle_trainer():
         trainer.name = data["name"]
         trainer.last_name = data["last_name"]
         # trainer.role = data["role"]
-        trainer.is_active = data["is_active"]
         trainer.attendance = data["attendance"]
 
         db.session.add(trainer)
