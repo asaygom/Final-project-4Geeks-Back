@@ -40,13 +40,17 @@ def handle_user():
         if (re.search(ereg,data["email"])):
             user.email = data["email"]
         else:
-            return "Invalid email format", 400
+            return jsonify({
+            "error": "Invalid email format"
+        }), 400
         #Checking password
         if (re.search(preg,data["password"])):
             password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
             user.password = password_hash
         else:
-            return "Invalid password format", 400
+            return jsonify({
+            "error": "Invalid password format"
+        }), 400
         #Ask for everything else
         user.name = data["name"]
         user.last_name = data["last_name"]
