@@ -60,7 +60,7 @@ def handle_user():
         db.session.commit()
 
         return jsonify({
-            "msg": "user created"
+            "msg": "User created"
         }), 200
     
 @app.route('/userinfo', methods=['GET','PUT', 'DELETE'])
@@ -77,14 +77,14 @@ def update_user():
 @app.route("/login", methods=["POST"])
 def login():
     if not request.is_json:
-        return jsonify({"msg": "Missing JSON in request"}), 400
+        return jsonify({"error": "Missing JSON in request"}), 400
     data = request.get_json()
     email = data["email"]
     password = data["password"]
     if not email:
-        return jsonify({"msg": "Missing email parameter"}), 400
+        return jsonify({"error": "Missing email parameter"}), 400
     if not password:
-        return jsonify({"msg": "Missing password parameter"}), 400
+        return jsonify({"error": "Missing password parameter"}), 400
     user = User.query.filter_by(email=email).first()
     if email is not None:
         current_password = user.password
@@ -97,24 +97,24 @@ def login():
             }), 200
         else:
             return jsonify({
-                "msg": "invalid credentials"
+                "error": "Invalid credentials"
             }), 400
     else:
         return jsonify({
-            "msg": "invalid credentials"
+            "error": "Invalid credentials"
         }), 400
 
 @app.route("/trainer_login", methods=["POST"])
 def trainer_login():
     if not request.is_json:
-        return jsonify({"msg": "Missing JSON in request"}), 400
+        return jsonify({"error": "Missing JSON in request"}), 400
     data = request.get_json()
     email = data["email"]
     password = data["password"]
     if not email:
-        return jsonify({"msg": "Missing email parameter"}), 400
+        return jsonify({"error": "Missing email parameter"}), 400
     if not password:
-        return jsonify({"msg": "Missing password parameter"}), 400
+        return jsonify({"error": "Missing password parameter"}), 400
     trainer = Trainer.query.filter_by(email=email).first()
     if email is not None:
         current_password = trainer.password
@@ -127,11 +127,11 @@ def trainer_login():
             }), 200
         else:
             return jsonify({
-                "msg": "invalid credentials"
+                "error": "Invalid credentials"
             }), 400
     else:
         return jsonify({
-            "msg": "invalid credentials"
+            "error": "Invalid credentials"
         }), 400
 
 @app.route('/equipment', methods=['GET', "POST"])
@@ -156,7 +156,7 @@ def handle_equipment():
         db.session.commit()
 
         return jsonify({
-            "msg": "equipment added"
+            "msg": "Equipment added"
         }), 200
 
 @app.route('/equipment/<int:id>', methods=['GET','PUT', 'DELETE'])
@@ -173,11 +173,11 @@ def update_equipment(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "equipment deleted"
+                "msg": "Equipment deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "equipment not found"
+                "error": "Equipment not found"
             }), 404
     elif request.method == 'PUT':
         equipment = Equipment.query.get(id)
@@ -193,11 +193,11 @@ def update_equipment(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "equipment updated"
+                "error": "Equipment updated"
             }), 200
         else:
             return jsonify({
-                "msg": "equipment not found"
+                "error": "Equipment not found"
             }), 404
         
 @app.route('/trainer', methods=['GET', "POST"])
@@ -217,13 +217,17 @@ def handle_trainer():
         if (re.search(ereg,data["email"])):
             trainer.email = data["email"]
         else:
-            return "Invalid email format", 400
+            return jsonify({
+            "error": "Invalid email format"
+        }), 400
         #Checking password
         if (re.search(preg,data["password"])):
             password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
             trainer.password = password_hash
         else:
-            return "Invalid password format", 400
+            return jsonify({
+            "error": "Invalid password format"
+        }), 400
         #Ask for everything else
         trainer.name = data["name"]
         trainer.last_name = data["last_name"]
@@ -234,7 +238,7 @@ def handle_trainer():
         db.session.commit()
 
         return jsonify({
-            "msg": "trainer created"
+            "msg": "Trainer created"
         }), 200
     
 @app.route('/routines', methods = ["POST","GET", "DELETE", "PUT"])
@@ -258,11 +262,11 @@ def routine():
         db.session.commit()
 
         return jsonify ({
-            "msg": "new routine created"
+            "msg": "New routine created"
         }), 200
     else:
         return jsonify ({
-            "msg": "not valid"
+            "error": "Not valid"
         }), 400
     
 # @app.route('/exercise', methods=["POST", "GET"])
@@ -317,7 +321,7 @@ def handle_exercise():
         db.session.commit()
 
         return jsonify({
-            "msg": "exercise added"
+            "msg": "Exercise added"
         }), 200
 
 
@@ -336,11 +340,11 @@ def update_exercise(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "exercise deleted"
+                "msg": "Exercise deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "exercise not found"
+                "error": "Exercise not found"
             }), 404
     elif request.method == 'PUT':
         exercise = Exercise.query.get(id)
@@ -361,11 +365,11 @@ def update_exercise(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "exercise updated"
+                "msg": "Exercise updated"
             }), 200
         else:
             return jsonify({
-                "msg": "exercise not found"
+                "error": "Exercise not found"
             }), 404
 
 
@@ -396,7 +400,7 @@ def handle_routine():
         db.session.commit()
 
         return jsonify({
-            "msg": "routine added"
+            "msg": "Routine added"
         }), 200
 
 @app.route('/routine/<int:id>', methods=['GET','PUT', 'DELETE'])
@@ -413,11 +417,11 @@ def update_routine(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "routine deleted"
+                "msg": "Routine deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "routine not found"
+                "error": "Routine not found"
             }), 404
     elif request.method == 'PUT':
         routine = Routine.query.get(id)
@@ -433,11 +437,11 @@ def update_routine(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "routine updated"
+                "msg": "Routine updated"
             }), 200
         else:
             return jsonify({
-                "msg": "routine not found"
+                "error": "Routine not found"
             }), 404
         
 
@@ -470,7 +474,7 @@ def handle_training_plan():
         db.session.commit()
 
         return jsonify({
-            "msg": "training_plan added"
+            "msg": "Training plan added"
         }), 200
 
 @app.route('/training_plan/<int:id>', methods=['GET','PUT', 'DELETE'])
@@ -487,11 +491,11 @@ def update_training_plan(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "training_plan deleted"
+                "msg": "Training plan deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "training_plan not found"
+                "error": "Training plan not found"
             }), 404
     elif request.method == 'PUT':
         training_plan = Training_plan.query.get(id)
@@ -511,11 +515,11 @@ def update_training_plan(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "training_plan updated"
+                "msg": "Training plan updated"
             }), 200
         else:
             return jsonify({
-                "msg": "training_plan not found"
+                "error": "Training plan not found"
             }), 404
 
 
