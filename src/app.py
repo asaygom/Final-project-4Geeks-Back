@@ -62,7 +62,34 @@ def handle_user():
         return jsonify({
             "msg": "User created"
         }), 200
-    
+
+@app.route('/member', methods=['GET'])
+def handle_member():
+        members = User.query.filter_by(role="member").all()
+        members = list(map(lambda user: user.to_dict(), members))
+
+        return jsonify({
+            "data": members
+        }), 200
+
+@app.route('/active_member', methods=['GET'])
+def handle_activeMember():
+        actives_members = User.query.filter_by(role="member",is_active=True).all()
+        actives_members = list(map(lambda user: user.to_dict(), actives_members))
+
+        return jsonify({
+            "data": actives_members
+        }), 200
+
+@app.route('/active_trainer', methods=['GET'])
+def handle_activeTrainer():
+        actives_trainers = Trainer.query.filter_by(is_active=True).all()
+        actives_trainers = list(map(lambda trainer: trainer.to_dict(), actives_trainers))
+
+        return jsonify({
+            "data": actives_trainers
+        }), 200
+
 @app.route('/userinfo', methods=['GET','PUT', 'DELETE'])
 @jwt_required()
 def update_user():
@@ -157,6 +184,19 @@ def handle_equipment():
 
         return jsonify({
             "msg": "Equipment added"
+        }), 200
+
+@app.route('/status_equipment_summary', methods=['GET'])
+def handle_statusEquipmentSummary():
+        working_equipment = Equipment.query.filter_by(status="working").all()
+        working_equipment = list(map(lambda equipment: equipment.to_dict(), working_equipment))
+        malfunction_equipment = Equipment.query.filter_by(status="malfunction").all()
+        malfunction_equipment = list(map(lambda equipment: equipment.to_dict(), malfunction_equipment))
+        not_working_equipment = Equipment.query.filter_by(status="not_working").all()
+        not_working_equipment = list(map(lambda equipment: equipment.to_dict(), not_working_equipment))
+
+        return jsonify({
+            "data": {"working_equipment": working_equipment, "not_working_equipment": not_working_equipment, "malfunction_equipment": malfunction_equipment}
         }), 200
 
 @app.route('/equipment/<int:id>', methods=['GET','PUT', 'DELETE'])
