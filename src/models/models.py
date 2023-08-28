@@ -12,7 +12,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'), nullable=True)
     role = db.Column(db.Enum("member","admin",name="roles"), nullable=False)
-    is_active = db.Column(db.Boolean, nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
     subscription_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     photo_link = db.Column(db.String(300), nullable=True)
     attendances = db.relationship("Attendance", backref="user")
@@ -38,8 +38,10 @@ class Trainer(db.Model):
     last_name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
-    is_active = db.Column(db.Boolean, nullable=False)
+    role = db.Column(db.String(200), nullable=False, default="trainer")
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
     attendance = db.Column(db.Boolean, nullable=False)
+    photo_link = db.Column(db.String(300), nullable=True)
     users = db.relationship("User", backref="trainer", lazy=True)
     training_plans = db.relationship("Training_plan", backref="trainer")
 
@@ -49,8 +51,10 @@ class Trainer(db.Model):
             "name": self.name,
             "last_name": self.last_name,
             "email": self.email,
+            "role": self.role,
             "is_active": self.is_active,
-            "attendance": self.attendance
+            "attendance": self.attendance,
+            "photo_link": self.photo_link
         }
     
 class Training_plan(db.Model):
@@ -115,11 +119,9 @@ class Exercise(db.Model):
     weight = db.Column(db.Integer)
     is_completed = db.Column(db.Boolean, nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=True)
-    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","mayor_issue",name="equipment_issue"))
+    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","major_issue",name="equipment_issue"))
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'))
     photo_link = db.Column(db.String(300), nullable=True)
-    
-
 
     def to_dict(self):
         return {
@@ -134,7 +136,6 @@ class Exercise(db.Model):
             "equipment_issue": self.equipment_issue,
             "routine_id": self.routine_id,
             "photo_link": self.photo_link
-
         }
 
 class Equipment(db.Model):
@@ -155,7 +156,6 @@ class Equipment(db.Model):
             "status": self.status,
             "is_active": self.is_active,
             "photo_link": self.photo_link
-
         }
 
 class Attendance(db.Model):

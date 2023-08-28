@@ -18,11 +18,10 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 # para cambiar el alcance de las expresiones regulares
-# #Regular expression that checks a valid email
+#Regular expression that checks a valid email
 ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
 #Regular expression that checks a valid password
 preg = '^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$'
-
 
 #empezamos a declarar nuestras rutas y metodos
 @app.route('/user', methods=['GET', "POST"])
@@ -41,26 +40,56 @@ def handle_user():
         if (re.search(ereg,data["email"])):
             user.email = data["email"]
         else:
-            return "Invalid email format", 400
+            return jsonify({
+            "error": "Invalid email format"
+        }), 400
         #Checking password
         if (re.search(preg,data["password"])):
             password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
             user.password = password_hash
         else:
-            return "Invalid password format", 400
+            return jsonify({
+            "error": "Invalid password format"
+        }), 400
         #Ask for everything else
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.role = data["role"]
-        user.is_active = data["is_active"]
 
         db.session.add(user)
         db.session.commit()
 
         return jsonify({
-            "msg": "user created"
+            "msg": "User created"
         }), 200
-    
+
+@app.route('/member', methods=['GET'])
+def handle_member():
+        members = User.query.filter_by(role="member").all()
+        members = list(map(lambda user: user.to_dict(), members))
+
+        return jsonify({
+            "data": members
+        }), 200
+
+@app.route('/active_member', methods=['GET'])
+def handle_activeMember():
+        actives_members = User.query.filter_by(role="member",is_active=True).all()
+        actives_members = list(map(lambda user: user.to_dict(), actives_members))
+
+        return jsonify({
+            "data": actives_members
+        }), 200
+
+@app.route('/active_trainer', methods=['GET'])
+def handle_activeTrainer():
+        actives_trainers = Trainer.query.filter_by(is_active=True).all()
+        actives_trainers = list(map(lambda trainer: trainer.to_dict(), actives_trainers))
+
+        return jsonify({
+            "data": actives_trainers
+        }), 200
+
 @app.route('/userinfo', methods=['GET','PUT', 'DELETE'])
 @jwt_required()
 def update_user():
@@ -75,14 +104,14 @@ def update_user():
 @app.route("/login", methods=["POST"])
 def login():
     if not request.is_json:
-        return jsonify({"msg": "Missing JSON in request"}), 400
+        return jsonify({"error": "Missing JSON in request"}), 400
     data = request.get_json()
     email = data["email"]
     password = data["password"]
     if not email:
-        return jsonify({"msg": "Missing email parameter"}), 400
+        return jsonify({"error": "Missing email parameter"}), 400
     if not password:
-        return jsonify({"msg": "Missing password parameter"}), 400
+        return jsonify({"error": "Missing password parameter"}), 400
     user = User.query.filter_by(email=email).first()
     if email is not None:
         current_password = user.password
@@ -95,24 +124,24 @@ def login():
             }), 200
         else:
             return jsonify({
-                "msg": "invalid credentials"
+                "error": "Invalid credentials"
             }), 400
     else:
         return jsonify({
-            "msg": "invalid credentials"
+            "error": "Invalid credentials"
         }), 400
 
 @app.route("/trainer_login", methods=["POST"])
 def trainer_login():
     if not request.is_json:
-        return jsonify({"msg": "Missing JSON in request"}), 400
+        return jsonify({"error": "Missing JSON in request"}), 400
     data = request.get_json()
     email = data["email"]
     password = data["password"]
     if not email:
-        return jsonify({"msg": "Missing email parameter"}), 400
+        return jsonify({"error": "Missing email parameter"}), 400
     if not password:
-        return jsonify({"msg": "Missing password parameter"}), 400
+        return jsonify({"error": "Missing password parameter"}), 400
     trainer = Trainer.query.filter_by(email=email).first()
     if email is not None:
         current_password = trainer.password
@@ -125,11 +154,11 @@ def trainer_login():
             }), 200
         else:
             return jsonify({
-                "msg": "invalid credentials"
+                "error": "Invalid credentials"
             }), 400
     else:
         return jsonify({
-            "msg": "invalid credentials"
+            "error": "Invalid credentials"
         }), 400
 
 @app.route('/equipment', methods=['GET', "POST"])
@@ -154,7 +183,20 @@ def handle_equipment():
         db.session.commit()
 
         return jsonify({
-            "msg": "equipment added"
+            "msg": "Equipment added"
+        }), 200
+
+@app.route('/status_equipment_summary', methods=['GET'])
+def handle_statusEquipmentSummary():
+        working_equipment = Equipment.query.filter_by(status="working").all()
+        working_equipment = list(map(lambda equipment: equipment.to_dict(), working_equipment))
+        malfunction_equipment = Equipment.query.filter_by(status="malfunction").all()
+        malfunction_equipment = list(map(lambda equipment: equipment.to_dict(), malfunction_equipment))
+        not_working_equipment = Equipment.query.filter_by(status="not_working").all()
+        not_working_equipment = list(map(lambda equipment: equipment.to_dict(), not_working_equipment))
+
+        return jsonify({
+            "data": {"working_equipment": working_equipment, "not_working_equipment": not_working_equipment, "malfunction_equipment": malfunction_equipment}
         }), 200
 
 @app.route('/equipment/<int:id>', methods=['GET','PUT', 'DELETE'])
@@ -171,11 +213,11 @@ def update_equipment(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "equipment deleted"
+                "msg": "Equipment deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "equipment not found"
+                "error": "Equipment not found"
             }), 404
     elif request.method == 'PUT':
         equipment = Equipment.query.get(id)
@@ -191,11 +233,11 @@ def update_equipment(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "equipment updated"
+                "error": "Equipment updated"
             }), 200
         else:
             return jsonify({
-                "msg": "equipment not found"
+                "error": "Equipment not found"
             }), 404
         
 @app.route('/trainer', methods=['GET', "POST"])
@@ -215,25 +257,28 @@ def handle_trainer():
         if (re.search(ereg,data["email"])):
             trainer.email = data["email"]
         else:
-            return "Invalid email format", 400
+            return jsonify({
+            "error": "Invalid email format"
+        }), 400
         #Checking password
         if (re.search(preg,data["password"])):
             password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
             trainer.password = password_hash
         else:
-            return "Invalid password format", 400
+            return jsonify({
+            "error": "Invalid password format"
+        }), 400
         #Ask for everything else
         trainer.name = data["name"]
         trainer.last_name = data["last_name"]
         # trainer.role = data["role"]
-        trainer.is_active = data["is_active"]
         trainer.attendance = data["attendance"]
 
         db.session.add(trainer)
         db.session.commit()
 
         return jsonify({
-            "msg": "trainer created"
+            "msg": "Trainer created"
         }), 200
     
 @app.route('/routines', methods = ["POST","GET", "DELETE", "PUT"])
@@ -257,11 +302,11 @@ def routine():
         db.session.commit()
 
         return jsonify ({
-            "msg": "new routine created"
+            "msg": "New routine created"
         }), 200
     else:
         return jsonify ({
-            "msg": "not valid"
+            "error": "Not valid"
         }), 400
     
 # @app.route('/exercise', methods=["POST", "GET"])
@@ -316,7 +361,7 @@ def handle_exercise():
         db.session.commit()
 
         return jsonify({
-            "msg": "exercise added"
+            "msg": "Exercise added"
         }), 200
 
 
@@ -335,11 +380,11 @@ def update_exercise(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "exercise deleted"
+                "msg": "Exercise deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "exercise not found"
+                "error": "Exercise not found"
             }), 404
     elif request.method == 'PUT':
         exercise = Exercise.query.get(id)
@@ -360,11 +405,11 @@ def update_exercise(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "exercise updated"
+                "msg": "Exercise updated"
             }), 200
         else:
             return jsonify({
-                "msg": "exercise not found"
+                "error": "Exercise not found"
             }), 404
 
 
@@ -395,7 +440,7 @@ def handle_routine():
         db.session.commit()
 
         return jsonify({
-            "msg": "routine added"
+            "msg": "Routine added"
         }), 200
 
 @app.route('/routine/<int:id>', methods=['GET','PUT', 'DELETE'])
@@ -412,11 +457,11 @@ def update_routine(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "routine deleted"
+                "msg": "Routine deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "routine not found"
+                "error": "Routine not found"
             }), 404
     elif request.method == 'PUT':
         routine = Routine.query.get(id)
@@ -432,11 +477,11 @@ def update_routine(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "routine updated"
+                "msg": "Routine updated"
             }), 200
         else:
             return jsonify({
-                "msg": "routine not found"
+                "error": "Routine not found"
             }), 404
         
 
@@ -469,7 +514,7 @@ def handle_training_plan():
         db.session.commit()
 
         return jsonify({
-            "msg": "training_plan added"
+            "msg": "Training plan added"
         }), 200
 
 @app.route('/training_plan/<int:id>', methods=['GET','PUT', 'DELETE'])
@@ -486,11 +531,11 @@ def update_training_plan(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "training_plan deleted"
+                "msg": "Training plan deleted"
             }), 202
         else:
             return jsonify({
-                "msg": "training_plan not found"
+                "error": "Training plan not found"
             }), 404
     elif request.method == 'PUT':
         training_plan = Training_plan.query.get(id)
@@ -510,11 +555,11 @@ def update_training_plan(id):
             db.session.commit()
 
             return jsonify({
-                "msg": "training_plan updated"
+                "msg": "Training plan updated"
             }), 200
         else:
             return jsonify({
-                "msg": "training_plan not found"
+                "error": "Training plan not found"
             }), 404
 
 
