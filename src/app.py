@@ -317,10 +317,25 @@ def routine():
 #ejercicios
 
 @app.route('/exercise', methods=['GET', "POST"])
+@jwt_required()
 def handle_exercise():
     if request.method == 'GET':
-        exercises = Exercise.query.all()
+        user_email = get_jwt_identity()
+        user = User.query.filter_by(email=user_email).first()
+
+        if not user:
+            return jsonify(message="User not found"), 404
+
+       # Obtener todos los IDs de los planes de entrenamiento del usuario
+        training_plan_ids = [plan.id for plan in Training_plan.query.filter_by(user_id=user.id).all()]
+
+        # Obtener todos los IDs de las rutinas asociadas a esos planes de entrenamiento
+        routine_ids = [routine.id for routine in Routine.query.filter(Routine.training_plan_id.in_(training_plan_ids)).all()]
+
+        # Filtrar los ejercicios basados en esas rutinas
+        exercises = Exercise.query.filter(Exercise.routine_id.in_(routine_ids)).all()
         exercises = list(map(lambda exercise: exercise.to_dict(), exercises))
+
 
         return jsonify({
             "data": exercises
