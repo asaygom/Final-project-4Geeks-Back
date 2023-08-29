@@ -123,7 +123,7 @@ class Exercise(db.Model):
     weight = db.Column(db.Integer)
     is_completed = db.Column(db.Boolean, nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=True)
-    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","major_issue",name="equipment_issue"))
+    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","major_issue",name="equipment_issue"),  nullable=True)
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'))
     photo_link = db.Column(db.String(300), nullable=True)
 
