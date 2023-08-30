@@ -70,6 +70,7 @@ class Training_plan(db.Model):
     goal_description = db.Column(db.String(200))
     completed_percentage = db.Column(db.Float, nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
+    photo_link = db.Column(db.String(300), nullable=True)
     routines = db.relationship("Routine", backref="training_plan")
 
     def to_dict(self):
@@ -84,7 +85,8 @@ class Training_plan(db.Model):
             "goal_name": self.goal_name,
             "goal_description": self.goal_description,
             "completed_percentage": self.completed_percentage,
-            "is_active": self.is_active
+            "is_active": self.is_active,
+            "photo_link": self.photo_link
         }
 
 class Routine(db.Model):
@@ -96,6 +98,7 @@ class Routine(db.Model):
     is_completed = db.Column(db.Boolean, nullable=False)
     is_active = db.Column(db.Boolean, nullable=False)
     training_plan_id = db.Column(db.Integer, db.ForeignKey('training_plan.id'))
+    photo_link = db.Column(db.String(300), nullable=True)
     exercises = db.relationship("Exercise", backref="routine")
 
     def to_dict(self):
@@ -106,7 +109,8 @@ class Routine(db.Model):
             "completed_percentage": self.completed_percentage,
             "is_completed": self.is_completed,
             "is_active": self.is_active,
-            "training_plan_id": self.training_plan_id
+            "training_plan_id": self.training_plan_id,
+            "photo_link": self.photo_link
         }
 
 class Exercise(db.Model):
@@ -119,7 +123,7 @@ class Exercise(db.Model):
     weight = db.Column(db.Integer)
     is_completed = db.Column(db.Boolean, nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=True)
-    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","major_issue",name="equipment_issue"))
+    equipment_issue = db.Column(db.Enum("minor_issue","mid_issue","major_issue",name="equipment_issue"),  nullable=True)
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'))
     photo_link = db.Column(db.String(300), nullable=True)
 

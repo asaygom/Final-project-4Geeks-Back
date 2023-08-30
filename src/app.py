@@ -179,6 +179,9 @@ def handle_equipment():
         equipment.is_active = data["is_active"]
         equipment.photo_link = data["photo_link"]
 
+        if not equipment.status:
+            equipment.status = None
+
         db.session.add(equipment)
         db.session.commit()
 
@@ -298,6 +301,7 @@ def routine():
         routine.completed_percentage = data["completed_percentage"]
         routine.is_active = data["is_active"]
         routine.training_plan_id = data["training_plan_id"]
+        routine.photo_link = data["photo_link"]
         db.session.add(routine)
         db.session.commit()
 
@@ -309,30 +313,29 @@ def routine():
             "error": "Not valid"
         }), 400
     
-# @app.route('/exercise', methods=["POST", "GET"])
-# def exercise():
-#     if request.method == 'GET':
-#         exercise = Exercise.query.all()
-#         exercise = list(map(lambda exercise: exercise.to_dict(), exercise))
-
-#         return jsonify({
-#             "data": exercise
-#         }), 200
-    
-# @app.route('/trainigplan', methods=["GET"])
-# def trainingplan():
-#     plan = Training_plan.query.all()
-#     data = list(map(lambda plan: plan.to_dict(), plan))
-#     return data, 200
-    
 
 #ejercicios
 
 @app.route('/exercise', methods=['GET', "POST"])
+@jwt_required()
 def handle_exercise():
     if request.method == 'GET':
-        exercises = Exercise.query.all()
+        user_email = get_jwt_identity()
+        user = User.query.filter_by(email=user_email).first()
+
+        if not user:
+            return jsonify(message="User not found"), 404
+
+       # Obtener todos los IDs de los planes de entrenamiento del usuario
+        training_plan_ids = [plan.id for plan in Training_plan.query.filter_by(user_id=user.id).all()]
+
+        # Obtener todos los IDs de las rutinas asociadas a esos planes de entrenamiento
+        routine_ids = [routine.id for routine in Routine.query.filter(Routine.training_plan_id.in_(training_plan_ids)).all()]
+
+        # Filtrar los ejercicios basados en esas rutinas
+        exercises = Exercise.query.filter(Exercise.routine_id.in_(routine_ids)).all()
         exercises = list(map(lambda exercise: exercise.to_dict(), exercises))
+
 
         return jsonify({
             "data": exercises
@@ -351,11 +354,12 @@ def handle_exercise():
         exercise.routine_id = data.get("routine_id")  # Usar get para evitar errores si la clave no existe
         exercise.photo_link = data["photo_link"]
 
-        # Ahora que ya hemos definido equipment_id y routine_id, podemos usarlos en las condiciones
         if not exercise.equipment_id:
             exercise.equipment_id = None
         if not exercise.routine_id:
             exercise.routine_id = None
+        if not exercise.equipment_issue:
+            exercise.equipment_issue = None
 
         db.session.add(exercise)
         db.session.commit()
@@ -370,7 +374,15 @@ def handle_exercise():
 def update_exercise(id):
     if request.method == 'GET':
         exercise = Exercise.query.get(id)
+        equipment = Equipment.query.get(exercise.equipment_id)          # Usamos el equipment_id para obtener el equipo asociado
+        equipment_name = equipment.name if equipment else None
+
+        routine = Routine.query.get(exercise.routine_id)
+        routine_name = routine.name if routine else None
+
         data = exercise.to_dict()
+        data["equipment_name"] = equipment_name
+        data["routine_name"] = routine_name
 
         return data, 200
     elif request.method == 'DELETE':
@@ -401,6 +413,12 @@ def update_exercise(id):
             exercise.routine_id = data["routine_id"]
             exercise.photo_link = data["photo_link"]
 
+            if not exercise.equipment_id:
+                exercise.equipment_id = None
+            if not exercise.routine_id:
+                exercise.routine_id = None
+            if not exercise.equipment_issue:
+                exercise.equipment_issue = None
 
             db.session.commit()
 
@@ -435,6 +453,8 @@ def handle_routine():
         routine.is_completed = data["is_completed"]
         routine.is_active = data["is_active"]
         routine.training_plan_id = data["training_plan_id"]
+        routine.photo_link = data["photo_link"]
+
 
         db.session.add(routine)
         db.session.commit()
@@ -473,6 +493,8 @@ def update_routine(id):
             routine.is_completed = data["is_completed"]
             routine.is_active = data["is_active"]
             routine.training_plan_id = data["training_plan_id"]
+            routine.photo_link = data["photo_link"]
+
 
             db.session.commit()
 
@@ -487,11 +509,20 @@ def update_routine(id):
 
 #plan de entrenamiento
 
-@app.route('/training_plan', methods=['GET', "POST"])
+@app.route('/trainingplan', methods=['GET', "POST"])
+@jwt_required()                                         #@@@
 def handle_training_plan():
     if request.method == 'GET':
-        training_plans = Training_plan.query.all()
+        # Obtener el email del usuario logueado @@@
+        user_email = get_jwt_identity()
+        user = User.query.filter_by(email=user_email).first()
+        if not user:
+            return jsonify(message="User not found"), 404
+        
+        # Solo obtener los planes de entrenamiento del usuario logueado @@@
+        training_plans = Training_plan.query.filter_by(user_id=user.id).all()
         training_plans = list(map(lambda training_plan: training_plan.to_dict(), training_plans))
+
 
         return jsonify({
             "data": training_plans
@@ -499,8 +530,15 @@ def handle_training_plan():
     elif request.method == 'POST':
         training_plan = Training_plan()
         data = request.get_json()
+        user_email = get_jwt_identity()
+        user = User.query.filter_by(email=user_email).first()
+        if user:
+            user_id = user.id
+        else:
+            return jsonify(message="User not found"), 404
+
         training_plan.name = data["name"]
-        training_plan.user_id = data["user_id"]
+        training_plan.user_id = user_id                 #@@@
         training_plan.trainer_id = data["trainer_id"]
         training_plan.start_time = data["start_time"]
         training_plan.finish_time = data["finish_time"]
@@ -509,6 +547,11 @@ def handle_training_plan():
         training_plan.goal_description = data["goal_description"]
         training_plan.completed_percentage = data["completed_percentage"]
         training_plan.is_active = data["is_active"]
+        training_plan.photo_link = data["photo_link"]
+
+
+        if not training_plan.trainer_id:
+            training_plan.trainer_id = None
 
         db.session.add(training_plan)
         db.session.commit()
@@ -517,11 +560,27 @@ def handle_training_plan():
             "msg": "Training plan added"
         }), 200
 
-@app.route('/training_plan/<int:id>', methods=['GET','PUT', 'DELETE'])
+@app.route('/trainingplan/<int:id>', methods=['GET','PUT', 'DELETE'])
+@jwt_required()                                         #@@@
 def update_training_plan(id):
     if request.method == 'GET':
         training_plan = Training_plan.query.get(id)
+
+        trainer = Trainer.query.get(training_plan.trainer_id)          # @@@
+        trainer_name = trainer.name if trainer else None
+        trainer_lastname = trainer.last_name if trainer else None
+
+        user = User.query.get(training_plan.user_id)          # @@@
+        user_name = user.name if user else None
+        user_lastname = user.last_name if user else None
+
+
         data = training_plan.to_dict()
+        data["trainer_name"] = trainer_name
+        data["trainer_lastname"] = trainer_lastname
+        data["user_name"] = user_name
+        data["user_lastname"] = user_lastname
+
 
         return data, 200
     elif request.method == 'DELETE':
@@ -541,8 +600,16 @@ def update_training_plan(id):
         training_plan = Training_plan.query.get(id)
         if training_plan is not None:
             data = request.get_json()
+
+            user_email = get_jwt_identity()
+            user = User.query.filter_by(email=user_email).first()
+            if user:
+                user_id = user.id
+            else:
+                return jsonify(message="User not found"), 404
+            
             training_plan.name = data["name"]
-            training_plan.user_id = data["user_id"]
+            training_plan.user_id = user_id
             training_plan.trainer_id = data["trainer_id"]
             training_plan.start_time = data["start_time"]
             training_plan.finish_time = data["finish_time"]
@@ -551,6 +618,8 @@ def update_training_plan(id):
             training_plan.goal_description = data["goal_description"]
             training_plan.completed_percentage = data["completed_percentage"]
             training_plan.is_active = data["is_active"]
+            training_plan.photo_link = data["photo_link"]
+
 
             db.session.commit()
 
